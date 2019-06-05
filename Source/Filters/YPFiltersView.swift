@@ -13,10 +13,33 @@ class YPFiltersView: UIView {
     let imageView = UIImageView()
     var collectionView: UICollectionView!
     var filtersLoader: UIActivityIndicatorView!
+    var bottomLayoutGuide: UILayoutSupport!
+    
+    let captionTextView: UITextView = {
+        let textView = UITextView()
+        textView.backgroundColor = .clear
+        return textView
+    }()
+    fileprivate let filterMenuItem: YPMenuItem = {
+        let item = YPMenuItem()
+        item.textLabel.text = YPConfig.wordings.filter
+        item.button.addTarget(self, action: #selector(selectFilter), for: .touchUpInside)
+        return item
+    }()
+    fileprivate let captionMenuItem: YPMenuItem = {
+        let item = YPMenuItem()
+        item.textLabel.text = YPConfig.wordings.caption
+        item.button.addTarget(self, action: #selector(selectCaption), for: .touchUpInside)
+        item.select()
+        return item
+    }()
+    fileprivate let buttonsContainer: UIView = UIView()
     fileprivate let collectionViewContainer: UIView = UIView()
+    fileprivate let captionContainer: UIView = UIView()
     
     convenience init() {
         self.init(frame: CGRect.zero)
+        
         collectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: layout())
         filtersLoader = UIActivityIndicatorView(style: .gray)
         filtersLoader.hidesWhenStopped = true
@@ -28,6 +51,13 @@ class YPFiltersView: UIView {
             collectionViewContainer.sv(
                 filtersLoader,
                 collectionView
+            ),
+            captionContainer.sv(
+                captionTextView
+            ),
+            buttonsContainer.sv(
+                captionMenuItem,
+                filterMenuItem
             )
         )
         
@@ -36,8 +66,28 @@ class YPFiltersView: UIView {
         
         |-sideMargin-imageView.top(0)-sideMargin-|
         |-sideMargin-collectionViewContainer-sideMargin-|
-        collectionViewContainer.bottom(0)
+        |-sideMargin-buttonsContainer-sideMargin-|
+        |-sideMargin-captionContainer-sideMargin-|
+        
+        captionContainer.Bottom == buttonsContainer.Top
+        imageView.Bottom == captionContainer.Top
+        
+        captionTextView.fillContainer(20)
+        
+        collectionViewContainer.Bottom == buttonsContainer.Top
         imageView.Bottom == collectionViewContainer.Top
+        
+        if #available(iOS 11.0, *) {
+            buttonsContainer.Bottom == safeAreaLayoutGuide.Bottom
+        } else {
+            buttonsContainer.Bottom == bottomLayoutGuide.Bottom
+        }
+        
+        equal(widths: [filterMenuItem, captionMenuItem])
+        |-sideMargin-captionMenuItem-filterMenuItem-sideMargin-|
+        filterMenuItem.fillVertically()
+        captionMenuItem.fillVertically()
+        
         |collectionView.centerVertically().height(160)|
         filtersLoader.centerInContainer()
         
@@ -48,6 +98,9 @@ class YPFiltersView: UIView {
         imageView.clipsToBounds = true
         collectionView.backgroundColor = .clear
         collectionView.showsHorizontalScrollIndicator = false
+        
+        collectionViewContainer.isHidden = true
+        captionContainer.isHidden = false
     }
     
     func layout() -> UICollectionViewFlowLayout {
@@ -57,5 +110,19 @@ class YPFiltersView: UIView {
         layout.sectionInset = UIEdgeInsets(top: 0, left: 18, bottom: 0, right: 18)
         layout.itemSize = CGSize(width: 100, height: 120)
         return layout
+    }
+    
+    @objc public func selectFilter() {
+        collectionViewContainer.isHidden = false
+        captionContainer.isHidden = true
+        captionMenuItem.deselect()
+        filterMenuItem.select()
+    }
+    
+    @objc public func selectCaption() {
+        collectionViewContainer.isHidden = true
+        captionContainer.isHidden = false
+        captionMenuItem.select()
+        filterMenuItem.deselect()
     }
 }

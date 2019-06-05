@@ -37,7 +37,11 @@ open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecogni
     fileprivate var thumbnailImageForFiltering: CIImage? // Small image for creating filters thumbnails
     fileprivate var currentlySelectedImageThumbnail: UIImage? // Used for comparing with original image when tapped
 
-    fileprivate var v = YPFiltersView()
+    fileprivate lazy var v: YPFiltersView = {
+        let v = YPFiltersView()
+        v.bottomLayoutGuide = bottomLayoutGuide
+        return v
+    }()
 
     override open var prefersStatusBarHidden: Bool { return YPConfig.hidesStatusBar }
     override open func loadView() { view = v }
